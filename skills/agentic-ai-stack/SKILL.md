@@ -235,6 +235,37 @@ Coordinator, `aas-coder` in a worktree = Executor, `aas-tester` = held-out margi
 running it. Don't use HTR when there's no metric or no held-out set — fall back to the linear
 loop.
 
+### Execution discipline (file handoffs, ledger, models)
+
+Borrowed from `superpowers:subagent-driven-development` — operational habits that keep a long
+orchestration loop cheap and crash-safe:
+
+- **Hand artifacts over as files, not pasted text.** Anything you paste into a dispatch — or a
+  subagent prints back — stays in your context and is re-read on every later turn. Give the
+  Coder a *task-brief file* and a *report-file path*; it writes full detail to the file and
+  returns only status + a one-line summary + the commit range. Give the Reviewer/Tester the
+  diff as a file, generated from the **BASE commit you recorded before dispatch** — never
+  `HEAD~1`, which silently drops all but the last commit of a multi-commit task. Bulk content
+  moves as files; your context holds only the routing record.
+- **Keep a durable progress ledger, not just TodoWrite.** Conversation memory doesn't survive
+  compaction, and a controller that loses its place has re-dispatched entire completed task
+  sequences — the most expensive failure mode there is. Append one line per finished task to a
+  ledger file (e.g. `.aas/progress.md`): `Task N: complete (commits <base7>..<head7>, review
+  clean)`. On resume / after compaction, trust the ledger + `git log` over recollection; never
+  re-dispatch a task it marks done.
+- **Pick the cheapest model that fits each dispatch — and set it explicitly.** An omitted model
+  inherits *your* (often most-expensive) session model. Mechanical, fully-specified edits →
+  cheap tier; multi-file integration/judgment → standard; architecture and the final
+  whole-branch review → most capable. Set `model` per `Agent` call, not once.
+- **Require a structured status from the Coder:** one of **DONE**, **DONE_WITH_CONCERNS**
+  (completed but flagged doubts — read them before proceeding), **NEEDS_CONTEXT** (missing
+  info — supply it and re-dispatch), or **BLOCKED** (can't proceed — change something: more
+  context, a stronger model, or split the task; never re-dispatch the same model unchanged).
+  Deterministic control flow beats parsing free-form reports.
+- **Don't pre-judge the review.** When you write a Reviewer/Tester prompt, never tell it what
+  not to flag or pre-rate a finding's severity — let it raise the issue and adjudicate in the
+  loop. Pre-judging launders your own bias through the gate.
+
 ### Orchestration discipline
 
 - **You hold state and route; you are not the hands.** Keep your own direct edits minimal —
@@ -247,6 +278,12 @@ loop.
 - **Give each subagent a tight, self-contained prompt** — it doesn't see this conversation.
   State the goal, the inputs (files, branch, prior findings), and exactly what to return.
 - Track the stages with TodoWrite so the user can see the loop's progress.
+- **Run continuously through reversible work; stop only at the gates.** Don't pause for
+  "should I continue?" check-ins between ordinary tasks — execute the plan. The *only* stops
+  are the ones that exist on purpose: a safety-gate VETO, a human-approval gate on an
+  irreversible Ops action, or a genuine BLOCKED you can't resolve. (This reconciles
+  superpowers' "execute continuously" with this skill's gating — continuous on reversible
+  progress, gated on irreversible actions.)
 
 ## Anti-patterns to call out
 

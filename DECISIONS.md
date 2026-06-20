@@ -3,6 +3,31 @@
 Rationale for what's in the skill and — just as important — what's deliberately *not*, so a
 future rebuild doesn't re-litigate settled choices or re-add rejected ones.
 
+## 2026-06-19 — Superpowers execution-discipline borrowings
+
+Diffed Phase 3 against `superpowers:subagent-driven-development` + `dispatching-parallel-agents`
+(v6.0.3). The skills are complementary, not competing: this skill owns design/safety/permission
+scope (Phases 0–2, safety gate, typed least-privilege agents, HTR), superpowers owns execution
+mechanics. Ported the four highest-value execution habits into Phase 3 (`SKILL.md` new
+"Execution discipline" subsection) + `agents/aas-coder.md`:
+
+1. **File handoffs** — task-brief / report / diff move as files; the Coder writes full detail
+   to a report file and returns only status + one-line summary + commit range. Diffs generated
+   from the recorded BASE commit, never `HEAD~1` (truncates multi-commit tasks). Keeps the
+   controller's context from filling with pasted history.
+2. **Durable progress ledger** (`.aas/progress.md`) surviving compaction — never re-dispatch a
+   task the ledger marks done; trust ledger + `git log` over recollection.
+3. **Per-task model selection** — cheapest model that fits, set explicitly per `Agent` call
+   (omitting it inherits the expensive session model).
+4. **Structured Coder status protocol** — DONE / DONE_WITH_CONCERNS / NEEDS_CONTEXT / BLOCKED,
+   each with a controller handling rule (deterministic control flow). Plus a "don't pre-judge
+   the review" rule and a **continuous-vs-gated reconciliation**: run continuously through
+   reversible work, stop only at the gates that exist on purpose (safety VETO, Ops human
+   approval, unresolvable BLOCKED).
+
+What was *not* borrowed: superpowers' prompt-template scripts (`review-package`, `task-brief`)
+are repo-specific bash helpers — the principle was ported, not the scripts.
+
 ## 2026-06-19 — Hardening pass (Arbor + Ponytail + r/AI_Agents audit)
 
 Triggered by comparing the skill against four viral artifacts (Ponytail least-code skill, two

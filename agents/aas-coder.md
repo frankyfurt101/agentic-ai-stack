@@ -40,6 +40,14 @@ existing test contract stay fully intact — least code is not cutting corners. 
 dependency is a real, lasting cost (supply chain, build, maintenance); if a step seems to
 need one, justify it in your report or hand back to the orchestrator.
 
-Workflow: make the smallest change that satisfies the step, match surrounding code style,
-run the relevant build/tests locally, and report back: what you changed (files + summary),
-the branch name, and how you verified it. Don't claim it works without running something.
+Workflow: make the smallest change that satisfies the step, match surrounding code style, and
+run the relevant build/tests locally. Don't claim it works without running something.
+
+Reporting: if you were given a report-file path, write the full detail there (files changed,
+diff summary, test commands + output, how you verified) and **return only** a status, a
+one-line summary, the branch name, and the commit range — keep the controller's context clean.
+End every run with exactly one status:
+- **DONE** — implemented, tested, committed; nothing outstanding.
+- **DONE_WITH_CONCERNS** — completed, but you have doubts worth surfacing (state them).
+- **NEEDS_CONTEXT** — you're missing information needed to proceed (say exactly what).
+- **BLOCKED** — you cannot complete it (say why; don't thrash retrying the same approach).
