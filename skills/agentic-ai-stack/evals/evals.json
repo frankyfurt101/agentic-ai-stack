@@ -1,0 +1,23 @@
+{
+  "skill_name": "agentic-ai-stack",
+  "evals": [
+    {
+      "id": 0,
+      "prompt": "Best repos for agentic AI. I need something strong. I'm building an app that will need a whole stack of agents — the full stack. It's a coding platform in Python where agents plan, write code, review it, and deploy. What should I actually build?",
+      "expected_output": "An architecture, not a single 'magic repo'. Should present the 8 layers, recommend a concrete foundation (LangGraph + agent SDK + MCP + memory + tracing + sandbox + guardrails), lay out an agent team scoped to the coding domain with per-agent responsibilities/permissions, and emphasize least privilege + human approval on deploys.",
+      "files": []
+    },
+    {
+      "id": 1,
+      "prompt": "I'm a TypeScript dev building a research assistant that pulls from internal docs and the web, remembers past conversations, and answers questions. Should I use CrewAI? What's the right agent setup?",
+      "expected_output": "Should ask/account for TS ecosystem and recommend a TS-first path (Mastra) rather than defaulting to Python; should advise against CrewAI as the load-bearing foundation while acknowledging it for prototypes; should cover the relevant layers (orchestration, MCP tools, memory/RAG via pgvector or Qdrant + Letta, tracing) and a scoped team (orchestrator, researcher, memory curator, safety gate) — not all ten roles.",
+      "files": []
+    },
+    {
+      "id": 2,
+      "prompt": "We already agreed on the stack: LangGraph orchestrator, OpenAI Agents SDK, MCP tools, pgvector for memory, Langfuse for tracing, E2B sandbox, in Python. Now scaffold me a runnable starter repo skeleton I can grow into.",
+      "expected_output": "Should produce a runnable Python skeleton: repo layout with orchestrator/agents/tools/memory/sandbox/guardrails/observability dirs, docker-compose for pgvector+redis+langfuse, agent stubs with scoped tools, tracing wired in from the start, at least one guardrail/approval gate, a README and an entrypoint. Should NOT generate code for tools the user didn't choose.",
+      "files": []
+    }
+  ]
+}
