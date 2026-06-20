@@ -1,8 +1,23 @@
 # agentic-ai-stack
 
-Backup + source of truth for my **`/agentic-ai-stack`** Claude Code skill and its dedicated
-`aas-*` subagent team. Private repo so I can rebuild this setup on any machine if `~/.claude`
-is ever lost.
+[![License: Apache 2.0](https://img.shields.io/badge/License-Apache_2.0-blue.svg)](./LICENSE)
+[![Claude Code](https://img.shields.io/badge/Claude%20Code-skill-orange.svg)](https://claude.com/claude-code)
+
+A **Claude Code skill** + a dedicated, tool-scoped **`aas-*` subagent team** for designing,
+scaffolding, and executing production multi-agent systems — 8-layer stack design, least-privilege
+agents, an HTR optimization mode, and superpowers-style execution discipline. Also serves as the
+source of truth so the setup can be rebuilt on any machine if `~/.claude` is ever lost.
+
+## Quick start
+
+```bash
+git clone https://github.com/frankyfurt101/agentic-ai-stack.git
+cd agentic-ai-stack && ./install.sh
+```
+
+Installs into `~/.claude/skills` and `~/.claude/agents`. Restart Claude Code, then invoke
+`/agentic-ai-stack` (or dispatch the team via `subagent_type: aas-*`). See [Restore onto a
+fresh machine](#restore-onto-a-fresh-machine) for the manual steps `install.sh` runs.
 
 ## What's in here
 
