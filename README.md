@@ -49,3 +49,10 @@ Then in Claude Code the skill is available as `/agentic-ai-stack` and the agents
 See [`DECISIONS.md`](./DECISIONS.md) for the change history and the rationale behind what's
 in the catalog — including what was **deliberately left out** and why, so future-me doesn't
 re-add it.
+
+## License
+
+Licensed under the **Apache License, Version 2.0** — see [`LICENSE`](./LICENSE) and
+[`NOTICE`](./NOTICE). You may use, modify, and distribute this (including inside a company)
+under the terms of that license; it includes an explicit patent grant. Contributions are
+accepted under the same license.
