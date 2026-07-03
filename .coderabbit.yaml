@@ -1,0 +1,193 @@
+# yaml-language-server: $schema=https://coderabbit.ai/integrations/schema.v2.json
+# ─────────────────────────────────────────────────────────────────────────────
+# CodeRabbit — production review config for frankyfurt101
+# 5 review lenses on every PR: Security · Product · Production-readiness ·
+# AI/Agent-safety · Maintainability. Gating: hardcoded secrets BLOCK merge;
+# everything else is advisory. Mirror these settings at the CodeRabbit org level
+# so new repos inherit them automatically.
+# Docs: https://docs.coderabbit.ai/reference/configuration
+# ─────────────────────────────────────────────────────────────────────────────
+language: en-US
+tone_instructions: >-
+  Be direct and specific. Prioritize security and correctness over style. When
+  flagging an issue, name the concrete failure scenario and the fix. Skip praise.
+
+reviews:
+  profile: assertive          # fresh-eyes: surface more, hedge less
+  request_changes_workflow: false
+  high_level_summary: true
+  poem: false
+  review_status: true
+  collapse_walkthrough: false
+  changed_files_summary: true
+  sequence_diagrams: true
+  assess_linked_issues: true
+  related_issues: true
+  suggested_labels: true
+  suggested_reviewers: false
+  auto_apply_labels: false
+  abort_on_close: true
+
+  auto_review:
+    enabled: true
+    auto_incremental_review: true   # re-review on every push
+    drafts: false                   # skip draft PRs
+    base_branches:
+      - main
+      - master
+      - develop
+    ignore_usernames:
+      - dependabot[bot]
+      - renovate[bot]
+
+  # ── Noise reduction: never spend review budget on generated/vendored files ──
+  path_filters:
+    - "!**/dist/**"
+    - "!**/build/**"
+    - "!**/node_modules/**"
+    - "!**/.next/**"
+    - "!**/vendor/**"
+    - "!**/*.min.js"
+    - "!**/*.min.css"
+    - "!**/*.lock"
+    - "!**/package-lock.json"
+    - "!**/pnpm-lock.yaml"
+    - "!**/yarn.lock"
+    - "!**/Pods/**"
+    - "!**/*.pbxproj"
+    - "!**/*.generated.*"
+    - "!**/*.svg"
+
+  # ── LENSES (path_instructions steer the narrative review, up to 20k chars) ──
+  path_instructions:
+    # 🔒 SECURITY — applies everywhere
+    - path: "**"
+      instructions: >-
+        SECURITY LENS (fresh eyes, assume the author is trusted but fallible):
+        Flag hardcoded secrets, API keys, tokens, passwords, private keys, and
+        connection strings — these are blocking. Check authentication and
+        authorization on every new endpoint/handler. Look for injection (SQL,
+        command, path traversal, template), SSRF, unsafe deserialization, XXE,
+        and insecure direct object references. Verify user input is validated and
+        output is encoded. Flag weak/rolled-your-own crypto, missing TLS, and
+        secrets logged in plaintext. Check dependencies for known-vulnerable
+        versions. For IaC/Docker/CI: flag overly-broad permissions, exposed
+        ports, and privileged containers.
+    # 🛠️ PRODUCTION-READINESS — applies everywhere
+    - path: "**"
+      instructions: >-
+        RELIABILITY LENS: Flag unhandled errors and swallowed exceptions.
+        External/network/DB calls must have timeouts and sane retry/backoff. Check
+        for resource leaks (unclosed files, connections, goroutines). Verify
+        logging is present at failure points and never logs secrets/PII. For DB or
+        schema changes, require a migration and confirm backward compatibility and
+        rollback safety. Flag breaking API/contract changes without a version bump
+        or migration note. Watch for race conditions and non-idempotent retries.
+    # 🎯 PRODUCT / INTENT — UI, apps, and API surfaces
+    - path: "{**/*.tsx,**/*.jsx,**/*.vue,**/*.svelte,**/*.swift,**/components/**,**/pages/**,**/views/**,**/screens/**,**/app/**}"
+      instructions: >-
+        PRODUCT LENS: Does this change actually deliver what the PR description
+        claims? Flag missing edge cases: empty, loading, error, and offline states.
+        Check user-facing copy for clarity and typos. For UI, check accessibility
+        (labels, roles, keyboard nav, contrast, tap-target size) and responsive
+        behavior. Flag inconsistent UX vs. the rest of the app. Confirm API/response
+        shape changes are reflected on the client.
+    # 🤖 AI / AGENT-SAFETY — agent, MCP, and LLM code
+    - path: "{**/agents/**,**/agent/**,**/mcp/**,**/tools/**,**/prompts/**,**/*prompt*,**/*agent*,**/*llm*,**/*mcp*}"
+      instructions: >-
+        AI/AGENT-SAFETY LENS: Flag prompt-injection surfaces — untrusted input
+        (web content, file contents, tool output) concatenated into prompts without
+        isolation. Check that agent tools follow least privilege: no tool gets
+        broad filesystem, secret, or shell access it doesn't need. Flag secrets or
+        PII placed into prompts or logs. Look for unbounded loops or missing
+        token/cost/iteration caps that could run away. Verify human-approval gates
+        exist before irreversible or outward-facing agent actions.
+
+  # ── NAMED GATES (custom_checks) — the "3+ reviews" as pass/warn/block checks ──
+  pre_merge_checks:
+    custom_checks:
+      - name: "Security — no hardcoded secrets"
+        mode: error          # BLOCKS merge
+        instructions: >-
+          Fail if the diff introduces a hardcoded secret, API key, access token,
+          password, private key, or credential-bearing connection string in source,
+          config, or CI. Environment-variable references and secret-manager lookups
+          are fine. Placeholder/example values clearly marked as such are fine.
+      - name: "Security review"
+        mode: warning
+        instructions: >-
+          Warn if code touching auth, authorization, secret handling, crypto, file
+          I/O, network requests, or deserialization lacks input validation, output
+          encoding, or appropriate access checks.
+      - name: "Product / intent"
+        mode: warning
+        instructions: >-
+          Warn if a user-facing change omits error/empty/loading states, ships
+          user-visible copy with typos, or changes an API contract without updating
+          the client or documentation.
+      - name: "Production-readiness"
+        mode: warning
+        instructions: >-
+          Warn if external calls lack timeouts/retries, errors are swallowed,
+          failure paths have no logging, or a schema/DB change ships without a
+          migration and backward-compatibility consideration.
+      - name: "AI / agent-safety"
+        mode: warning
+        instructions: >-
+          Warn if agent/LLM/MCP code concatenates untrusted input into prompts
+          without isolation, grants a tool more privilege than it needs, places
+          secrets/PII into prompts or logs, or lacks cost/iteration caps and
+          human-approval gates on irreversible actions.
+
+  # ── Built-in security & quality scanners (the always-on backbone) ──
+  tools:
+    # Secrets
+    gitleaks:
+      enabled: true            # secret scanning (Betterleaks engine)
+    trufflehog:
+      enabled: true            # second-opinion secret/credential scanner
+    presidio:
+      enabled: true            # PII detection (relevant to dreamwhisper/user data)
+    # SAST + dependency + IaC
+    semgrep:
+      enabled: true            # SAST: security + code-quality rules
+    checkov:
+      enabled: true            # IaC / Terraform / Docker / K8s misconfig
+    trivy:
+      enabled: true            # vulns/misconfig in containers & IaC
+    osvScanner:
+      enabled: true            # dependency CVEs (OSV database)
+    # CI / Actions security (you have workflow scope + homelab CI)
+    actionlint:
+      enabled: true
+    zizmor:
+      enabled: true            # GitHub Actions security auditor
+    # AI / agent-skill security (MCP-Server, agentic-ai-stack, agent repos)
+    skillspector:
+      enabled: true            # AI agent skill / MCP security
+    # Language & format linters
+    swiftlint:
+      enabled: true            # iOS apps (ios-supps-app, nas-agent-deck, gpu-monitor-app)
+    reactDoctor:
+      enabled: true            # React correctness/perf/a11y
+    shellcheck:
+      enabled: true
+    hadolint:
+      enabled: true            # Dockerfile
+    yamllint:
+      enabled: true
+    ruff:
+      enabled: true            # Python
+    eslint:
+      enabled: true            # JS/TS
+    markdownlint:
+      enabled: true
+
+chat:
+  auto_reply: true
+
+knowledge_base:
+  learnings:
+    scope: auto                # learn your repo conventions over time
+  issues:
+    scope: auto
