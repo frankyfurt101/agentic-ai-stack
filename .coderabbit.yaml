@@ -191,3 +191,11 @@ knowledge_base:
     scope: auto                # learn your repo conventions over time
   issues:
     scope: auto
+  mcp:
+    # MCP knowledge sources (Context7, Notion, Sentry, DeepWiki) are connected
+    # org-wide in the CodeRabbit dashboard (Integrations → MCP Servers).
+    # 'auto' = active on PRIVATE repos but auto-disabled on PUBLIC repos, so
+    # private Notion/Sentry context can never leak into a public PR review.
+    # Do NOT switch to 'enabled' while any public repo exists.
+    usage: auto
+    disabled_servers: []       # none disabled; trim per-tool scope in the dashboard
